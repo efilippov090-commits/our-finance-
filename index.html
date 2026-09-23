@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Love Quest 💜</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Звёздный фон -->
+    <div class="stars"></div>
+
+    <!-- Главный экран -->
+    <main class="game">
+
+        <div class="badge">
+            ✦ LOVE QUEST ✦
+        </div>
+
+        <h1>
+            Наша маленькая<
+            <span>история</span>
+        </h1>
+
+        <p class="subtitle">
+            Небольшое путешествие, которое<
+            начинается прямо сейчас...
+        </p>
+
+        <button class="start-button" onclick="startGame()">
+            НАЧАТЬ ПУТЕШЕСТВИЕ
+        </button>
+
+        <div class="hint">
+            ✦ Только для одного особенного человека ✦
+        </div>
+
+    </main>
+
+    <!-- Игровой экран -->
+    <section id="game-screen" class="game-screen">
+
+        <div class="level">
+            LEVEL <span id="level-number">01</span>
+        </div>
+
+        <h2 id="question">
+            Готова начать?
+        </h2>
+
+        <p id="description">
+            Здесь тебя ждёт первая маленькая загадка.
+        </p>
+
+        <div id="answers" class="answers"></div>
+
+        <div id="message" class="message"></div>
+
+    </section>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
+
+
+
