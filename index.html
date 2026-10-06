@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наши финансы</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <header class="top">
+        <div>
+            <div class="eyebrow">OUR FINANCES</div>
+            <h1>Наши финансы</h1>
+            <p>Управляйте деньгами вместе</p>
+        </div>
+
+        <button class="settings-btn" onclick="resetAllData()">↻</button>
+    </header>
+
+
+    <!-- ОБЩИЙ БАЛАНС -->
+
+    <section class="balance-main">
+
+        <div class="balance-label">Общие деньги</div>
+
+        <div class="balance-value" id="totalBalance">
+            0 ₽
+        </div>
+
+        <div class="balance-info">
+            <span id="totalIncome">Доходы: 0 ₽</span>
+            <span id="totalExpense">Расходы: 0 ₽</span>
+        </div>
+
+    </section>
+
+
+    <!-- ДВА ЧЕЛОВЕКА -->
+
+    <section class="people">
+
+        <div class="person-card">
+
+            <div class="person-icon">👨</div>
+
+            <div class="person-info">
+                <div class="person-name">Егор</div>
+                <div class="person-balance" id="egorBalance">
+                    0 ₽
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="person-card">
+
+            <div class="person-icon">👩</div>
+
+            <div class="person-info">
+                <div class="person-name">Девушка</div>
+                <div class="person-balance" id="girlBalance">
+                    0 ₽
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- КНОПКИ -->
+
+    <section class="actions">
+
+        <button class="action income" onclick="openModal('income')">
+
+            <span>+</span>
+
+            <div>
+                <strong>Добавить доход</strong>
+                <small>Зарплата, подработка и т.д.</small>
+            </div>
+
+        </button>
+
+
+        <button class="action expense" onclick="openModal('expense')">
+
+            <span>−</span>
+
+            <div>
+                <strong>Добавить расход</strong>
+                <small>Покупка, еда, транспорт и т.д.</small>
+            </div>
+
+        </button>
+
+    </section>
+
+
+    <!-- СТАТИСТИКА -->
+
+    <section class="section">
+
+        <div class="section-title">
+            <h2>Этот месяц</h2>
+        </div>
+
+        <div class="stats">
+
+            <div class="stat-card">
+                <span>Доходы</span>
+                <strong class="green" id="monthIncome">
+                    0 ₽
+                </strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Расходы</span>
+                <strong class="red" id="monthExpense">
+                    0 ₽
+                </strong>
+            </div>
+
+            <div class="stat-card">
+                <span>Осталось</span>
+                <strong id="monthLeft">
+                    0 ₽
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ЦЕЛИ -->
+
+    <section class="section">
+
+        <div class="section-title">
+
+            <div>
+                <h2>Наши цели</h2>
+                <p class="section-subtitle">
+                    На что мы копим
+                </p>
+            </div>
+
+            <button class="add-small-btn" onclick="openGoalModal()">
+                + Цель
+            </button>
+
+        </div>
+
+
+        <div id="goals" class="goals">
+
+            <div class="empty">
+
+                <div>🎯</div>
+
+                <p>Пока нет целей</p>
+
+                <small>
+                    Создайте первую цель, на которую хотите накопить
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ИСТОРИЯ -->
+
+    <section class="section">
+
+        <div class="section-title">
+
+            <h2>Последние операции</h2>
+
+            <span id="operationCount">
+                0
+            </span>
+
+        </div>
+
+
+        <div id="operations" class="operations">
+
+            <div class="empty">
+
+                <div>💸</div>
+
+                <p>Пока нет операций</p>
+
+                <small>
+                    Добавьте первую зарплату или расход
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</div>
+
+
+<!-- ================================= -->
+<!-- МОДАЛЬНОЕ ОКНО ОПЕРАЦИИ -->
+<!-- ================================= -->
+
+<div class="modal-overlay" id="modal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+
+                <div class="eyebrow" id="modalEyebrow">
+                    ОПЕРАЦИЯ
+                </div>
+
+                <h2 id="modalTitle">
+                    Добавить доход
+                </h2>
+
+            </div>
+
+            <button
+                class="close-btn"
+                onclick="closeModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <label>Кто?</label>
+
+        <div class="person-select">
+
+            <button
+                class="person-option active"
+                data-person="egor"
+                onclick="selectPerson('egor')"
+            >
+                👨 Егор
+            </button>
+
+            <button
+                class="person-option"
+                data-person="girl"
+                onclick="selectPerson('girl')"
+            >
+                👩 Девушка
+            </button>
+
+        </div>
+
+
+        <label>Сумма</label>
+
+        <div class="amount-input">
+
+            <input
+                type="number"
+                id="amount"
+                placeholder="0"
+                min="1"
+            >
+
+            <span>₽</span>
+
+        </div>
+
+
+        <label>Категория</label>
+
+        <select id="category"></select>
+
+
+        <label>Описание</label>
+
+        <input
+            type="text"
+            id="description"
+            placeholder="Например: зарплата"
+        >
+
+
+        <button
+            class="save-btn"
+            onclick="saveOperation()"
+        >
+            Сохранить
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- МОДАЛЬНОЕ ОКНО ЦЕЛИ -->
+<!-- ================================= -->
+
+<div class="modal-overlay" id="goalModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+
+                <div class="eyebrow">
+                    НОВАЯ ЦЕЛЬ
+                </div>
+
+                <h2>
+                    На что копим?
+                </h2>
+
+            </div>
+
+            <button
+                class="close-btn"
+                onclick="closeGoalModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <label>Название цели</label>
+
+        <input
+            type="text"
+            id="goalName"
+            placeholder="Например: поездка в Сочи"
+        >
+
+
+        <label>Сколько нужно накопить?</label>
+
+        <div class="amount-input">
+
+            <input
+                type="number"
+                id="goalTarget"
+                placeholder="50000"
+                min="1"
+            >
+
+            <span>₽</span>
+
+        </div>
+
+
+        <label>Уже накоплено</label>
+
+        <div class="amount-input">
+
+            <input
+                type="number"
+                id="goalSaved"
+                placeholder="0"
+                min="0"
+            >
+
+            <span>₽</span>
+
+        </div>
+
+
+        <button
+            class="save-btn"
+            onclick="saveGoal()"
+        >
+            Создать цель
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ================================= -->
+<!-- МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ -->
+<!-- ================================= -->
+
+<div class="modal-overlay" id="addGoalMoneyModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+
+                <div class="eyebrow">
+                    НАКОПЛЕНИЯ
+                </div>
+
+                <h2>
+                    Добавить деньги
+                </h2>
+
+            </div>
+
+            <button
+                class="close-btn"
+                onclick="closeAddGoalMoneyModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <label>Кто добавляет?</label>
+
+        <div class="person-select">
+
+            <button
+                class="person-option active"
+                data-goal-person="egor"
+                onclick="selectGoalPerson('egor')"
+            >
+                👨 Егор
+            </button>
+
+            <button
+                class="person-option"
+                data-goal-person="girl"
+                onclick="selectGoalPerson('girl')"
+            >
+                👩 Девушка
+            </button>
+
+        </div>
+
+
+        <label>Сколько добавить?</label>
+
+        <div class="amount-input">
+
+            <input
+                type="number"
+                id="goalAmount"
+                placeholder="1000"
+                min="1"
+            >
+
+            <span>₽</span>
+
+        </div>
+
+
+        <button
+            class="save-btn"
+            onclick="addMoneyToGoal()"
+        >
+            Добавить
+        </button>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
