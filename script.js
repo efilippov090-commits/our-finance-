@@ -9,7 +9,7 @@ const SUPABASE_KEY =
     "sb_publishable_QjVhbwR51NPMdgWg-YUsaA_ague-U99";
 
 const supabaseClient =
-    window.supabase.createClient(
+    supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY
     );
