@@ -1,13 +1,27 @@
-let operations =
-    JSON.parse(
-        localStorage.getItem("ourFinanceOperations")
-    ) || [];
+// =====================================
+// SUPABASE
+// =====================================
 
-let goals =
-    JSON.parse(
-        localStorage.getItem("ourFinanceGoals")
-    ) || [];
+const SUPABASE_URL =
+    "https://nhqjufldplqcvqufxfaa.supabase.co";
 
+const SUPABASE_KEY =
+    "sb_publishable_QjVhbwR51NPMdgWg-YUsaA_ague-U99";
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+// =====================================
+// ДАННЫЕ
+// =====================================
+
+let operations = [];
+
+let goals = [];
 
 let currentType = "income";
 
@@ -19,24 +33,6 @@ let currentGoalId = null;
 
 
 // =====================================
-// СОХРАНЕНИЕ
-// =====================================
-
-function saveData() {
-
-    localStorage.setItem(
-        "ourFinanceOperations",
-        JSON.stringify(operations)
-    );
-
-    localStorage.setItem(
-        "ourFinanceGoals",
-        JSON.stringify(goals)
-    );
-}
-
-
-// =====================================
 // ФОРМАТ ДЕНЕГ
 // =====================================
 
@@ -44,6 +40,138 @@ function formatMoney(value) {
 
     return new Intl.NumberFormat("ru-RU")
         .format(Math.round(value)) + " ₽";
+
+}
+
+
+// =====================================
+// ЗАГРУЗКА ДАННЫХ
+// =====================================
+
+async function loadData() {
+
+    try {
+
+        const operationsResult =
+            await supabaseClient
+                .from("operations")
+                .select("*")
+                .order("created_at", {
+                    ascending: false
+                });
+
+
+        if (operationsResult.error) {
+
+            console.error(
+                "Ошибка загрузки операций:",
+                operationsResult.error
+            );
+
+            alert(
+                "Не удалось загрузить операции:\n\n" +
+                operationsResult.error.message
+            );
+
+            return;
+
+        }
+
+
+        operations =
+            operationsResult.data.map(
+                operation => ({
+
+                    id: operation.id,
+
+                    type: operation.type,
+
+                    person: operation.person,
+
+                    amount:
+                        Number(operation.amount),
+
+                    category:
+                        operation.category,
+
+                    description:
+                        operation.description ||
+                        operation.category,
+
+                    date:
+                        operation.created_at
+
+                })
+            );
+
+
+        const goalsResult =
+            await supabaseClient
+                .from("goals")
+                .select("*")
+                .order("created_at", {
+                    ascending: false
+                });
+
+
+        if (goalsResult.error) {
+
+            console.error(
+                "Ошибка загрузки целей:",
+                goalsResult.error
+            );
+
+            alert(
+                "Не удалось загрузить цели:\n\n" +
+                goalsResult.error.message
+            );
+
+            return;
+
+        }
+
+
+        goals =
+            goalsResult.data.map(
+                goal => ({
+
+                    id: goal.id,
+
+                    name: goal.name,
+
+                    target:
+                        Number(goal.target),
+
+                    saved:
+                        Number(goal.saved || 0),
+
+                    contributions:
+                        goal.contributions || [],
+
+                    createdAt:
+                        goal.created_at
+
+                })
+            );
+
+
+        updateUI();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Ошибка подключения:",
+            error
+        );
+
+        alert(
+            "Не удалось подключиться к базе.\n\n" +
+            error.message
+        );
+
+    }
 
 }
 
@@ -115,8 +243,9 @@ function openModal(type) {
         description.placeholder =
             "Например: зарплата за сентябрь";
 
+    }
 
-    } else {
+    else {
 
         eyebrow.textContent = "РАСХОД";
 
@@ -199,15 +328,9 @@ function selectPerson(person) {
         .querySelectorAll(".person-option")
         .forEach(button => {
 
-            if (
-                button.dataset.person
-            ) {
-
-                button.classList.remove(
-                    "active"
-                );
-
-            }
+            button.classList.remove(
+                "active"
+            );
 
         });
 
@@ -231,20 +354,20 @@ function selectPerson(person) {
 // СОХРАНЕНИЕ ОПЕРАЦИИ
 // =====================================
 
-function saveOperation() {
+async function saveOperation() {
 
-    const amountInput =
-        document.getElementById("amount");
+    const amount =
+        Number(
+            document.getElementById("amount").value
+        );
+
 
     const category =
         document.getElementById("category");
 
+
     const description =
         document.getElementById("description");
-
-
-    const amount =
-        Number(amountInput.value);
 
 
     if (!amount || amount <= 0) {
@@ -258,8 +381,6 @@ function saveOperation() {
 
     const operation = {
 
-        id: Date.now(),
-
         type: currentType,
 
         person: selectedPerson,
@@ -270,18 +391,57 @@ function saveOperation() {
 
         description:
             description.value.trim()
-            || category.value,
-
-        date:
-            new Date().toISOString()
+            || category.value
 
     };
 
 
-    operations.unshift(operation);
+    const { data, error } =
+        await supabaseClient
+            .from("operations")
+            .insert(operation)
+            .select()
+            .single();
 
 
-    saveData();
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Не удалось сохранить операцию.\n\n" +
+            error.message +
+            "\n\nКод: " +
+            (error.code || "нет")
+        );
+
+        return;
+
+    }
+
+
+    operations.unshift({
+
+        id: data.id,
+
+        type: data.type,
+
+        person: data.person,
+
+        amount:
+            Number(data.amount),
+
+        category:
+            data.category,
+
+        description:
+            data.description,
+
+        date:
+            data.created_at
+
+    });
+
 
     closeModal();
 
@@ -294,7 +454,28 @@ function saveOperation() {
 // УДАЛЕНИЕ ОПЕРАЦИИ
 // =====================================
 
-function deleteOperation(id) {
+async function deleteOperation(id) {
+
+    const { error } =
+        await supabaseClient
+            .from("operations")
+            .delete()
+            .eq("id", id);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Не удалось удалить операцию.\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
 
     operations =
         operations.filter(
@@ -302,8 +483,6 @@ function deleteOperation(id) {
                 operation.id !== id
         );
 
-
-    saveData();
 
     updateUI();
 
@@ -348,15 +527,18 @@ function updateUI() {
                 egorIncome +=
                     operation.amount;
 
-            } else {
+            }
+
+            else {
 
                 girlIncome +=
                     operation.amount;
 
             }
 
+        }
 
-        } else {
+        else {
 
             totalExpense +=
                 operation.amount;
@@ -369,7 +551,9 @@ function updateUI() {
                 egorExpense +=
                     operation.amount;
 
-            } else {
+            }
+
+            else {
 
                 girlExpense +=
                     operation.amount;
@@ -440,13 +624,10 @@ function updateUI() {
 
 function updateMonthStats() {
 
-    const now =
-        new Date();
-
+    const now = new Date();
 
     const currentMonth =
         now.getMonth();
-
 
     const currentYear =
         now.getFullYear();
@@ -482,7 +663,9 @@ function updateMonthStats() {
                 income +=
                     operation.amount;
 
-            } else {
+            }
+
+            else {
 
                 expense +=
                     operation.amount;
@@ -519,7 +702,7 @@ function updateMonthStats() {
 
 
 // =====================================
-// ОТКРЫТЬ СОЗДАНИЕ ЦЕЛИ
+// СОЗДАНИЕ ЦЕЛИ
 // =====================================
 
 function openGoalModal() {
@@ -546,10 +729,6 @@ function openGoalModal() {
 }
 
 
-// =====================================
-// ЗАКРЫТЬ СОЗДАНИЕ ЦЕЛИ
-// =====================================
-
 function closeGoalModal() {
 
     document
@@ -559,11 +738,7 @@ function closeGoalModal() {
 }
 
 
-// =====================================
-// СОЗДАТЬ ЦЕЛЬ
-// =====================================
-
-function saveGoal() {
+async function saveGoal() {
 
     const name =
         document
@@ -634,26 +809,61 @@ function saveGoal() {
 
     const goal = {
 
-        id: Date.now(),
-
         name: name,
 
         target: target,
 
         saved: saved,
 
-        contributions: [],
-
-        createdAt:
-            new Date().toISOString()
+        contributions: []
 
     };
 
 
-    goals.unshift(goal);
+    const { data, error } =
+        await supabaseClient
+            .from("goals")
+            .insert(goal)
+            .select()
+            .single();
 
 
-    saveData();
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Не удалось создать цель.\n\n" +
+            error.message +
+            "\n\nКод: " +
+            (error.code || "нет")
+        );
+
+        return;
+
+    }
+
+
+    goals.unshift({
+
+        id: data.id,
+
+        name: data.name,
+
+        target:
+            Number(data.target),
+
+        saved:
+            Number(data.saved || 0),
+
+        contributions:
+            data.contributions || [],
+
+        createdAt:
+            data.created_at
+
+    });
+
 
     closeGoalModal();
 
@@ -750,12 +960,14 @@ function renderGoals() {
                         </span>
 
                         <span class="goal-left">
+
                             ${
                                 completed
                                 ? "Цель достигнута 🎉"
                                 : "Осталось " +
                                   formatMoney(remaining)
                             }
+
                         </span>
 
                     </div>
@@ -817,7 +1029,7 @@ function renderGoals() {
 
 
 // =====================================
-// ОТКРЫТЬ ДОБАВЛЕНИЕ ДЕНЕГ
+// ДОБАВЛЕНИЕ К ЦЕЛИ
 // =====================================
 
 function openAddGoalMoneyModal(goalId) {
@@ -837,10 +1049,6 @@ function openAddGoalMoneyModal(goalId) {
 }
 
 
-// =====================================
-// ЗАКРЫТЬ ДОБАВЛЕНИЕ
-// =====================================
-
 function closeAddGoalMoneyModal() {
 
     document
@@ -849,10 +1057,6 @@ function closeAddGoalMoneyModal() {
 
 }
 
-
-// =====================================
-// КТО ДОБАВИЛ ДЕНЬГИ
-// =====================================
 
 function selectGoalPerson(person) {
 
@@ -889,11 +1093,7 @@ function selectGoalPerson(person) {
 }
 
 
-// =====================================
-// ДОБАВИТЬ ДЕНЬГИ К ЦЕЛИ
-// =====================================
-
-function addMoneyToGoal() {
+async function addMoneyToGoal() {
 
     const amount =
         Number(
@@ -943,17 +1143,17 @@ function addMoneyToGoal() {
     }
 
 
-    goal.saved += amount;
+    const newSaved =
+        goal.saved + amount;
 
 
-    if (!goal.contributions) {
+    const contributions =
+        Array.isArray(goal.contributions)
+            ? [...goal.contributions]
+            : [];
 
-        goal.contributions = [];
 
-    }
-
-
-    goal.contributions.push({
+    contributions.push({
 
         person:
             selectedGoalPerson,
@@ -967,7 +1167,45 @@ function addMoneyToGoal() {
     });
 
 
-    saveData();
+    const { data, error } =
+        await supabaseClient
+            .from("goals")
+            .update({
+
+                saved:
+                    newSaved,
+
+                contributions:
+                    contributions
+
+            })
+            .eq("id", goal.id)
+            .select()
+            .single();
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Не удалось добавить деньги.\n\n" +
+            error.message +
+            "\n\nКод: " +
+            (error.code || "нет")
+        );
+
+        return;
+
+    }
+
+
+    goal.saved =
+        Number(data.saved);
+
+    goal.contributions =
+        data.contributions || [];
+
 
     closeAddGoalMoneyModal();
 
@@ -977,10 +1215,10 @@ function addMoneyToGoal() {
 
 
 // =====================================
-// УДАЛИТЬ ЦЕЛЬ
+// УДАЛЕНИЕ ЦЕЛИ
 // =====================================
 
-function deleteGoal(id) {
+async function deleteGoal(id) {
 
     const confirmed =
         confirm(
@@ -995,14 +1233,33 @@ function deleteGoal(id) {
     }
 
 
+    const { error } =
+        await supabaseClient
+            .from("goals")
+            .delete()
+            .eq("id", id);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Не удалось удалить цель.\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
     goals =
         goals.filter(
             goal =>
                 goal.id !== id
         );
 
-
-    saveData();
 
     updateUI();
 
@@ -1078,16 +1335,14 @@ function renderOperations() {
 
 
                 const date =
-                    new Date(
-                        operation.date
-                    )
-                    .toLocaleDateString(
-                        "ru-RU",
-                        {
-                            day: "numeric",
-                            month: "short"
-                        }
-                    );
+                    new Date(operation.date)
+                        .toLocaleDateString(
+                            "ru-RU",
+                            {
+                                day: "numeric",
+                                month: "short"
+                            }
+                        );
 
 
                 return `
@@ -1111,11 +1366,13 @@ function renderOperations() {
                         <div class="operation-main">
 
                             <div class="operation-description">
+
                                 ${
                                     escapeHTML(
                                         operation.description
                                     )
                                 }
+
                             </div>
 
 
@@ -1124,9 +1381,11 @@ function renderOperations() {
                                 ${personName}
 
                                 •
+
                                 ${operation.category}
 
                                 •
+
                                 ${date}
 
                             </div>
@@ -1177,30 +1436,15 @@ function escapeHTML(text) {
 
     return String(text)
 
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
+        .replaceAll("&", "&amp;")
 
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
+        .replaceAll("<", "&lt;")
 
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
+        .replaceAll(">", "&gt;")
 
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
+        .replaceAll('"', "&quot;")
 
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+        .replaceAll("'", "&#039;");
 
 }
 
@@ -1209,7 +1453,7 @@ function escapeHTML(text) {
 // СБРОС
 // =====================================
 
-function resetAllData() {
+async function resetAllData() {
 
     const confirmed =
         confirm(
@@ -1224,12 +1468,56 @@ function resetAllData() {
     }
 
 
+    const operationsResult =
+        await supabaseClient
+            .from("operations")
+            .delete()
+            .neq("id", 0);
+
+
+    if (operationsResult.error) {
+
+        console.error(
+            operationsResult.error
+        );
+
+        alert(
+            "Не удалось удалить операции.\n\n" +
+            operationsResult.error.message
+        );
+
+        return;
+
+    }
+
+
+    const goalsResult =
+        await supabaseClient
+            .from("goals")
+            .delete()
+            .neq("id", 0);
+
+
+    if (goalsResult.error) {
+
+        console.error(
+            goalsResult.error
+        );
+
+        alert(
+            "Не удалось удалить цели.\n\n" +
+            goalsResult.error.message
+        );
+
+        return;
+
+    }
+
+
     operations = [];
 
     goals = [];
 
-
-    saveData();
 
     updateUI();
 
@@ -1298,4 +1586,4 @@ document
 // ЗАПУСК
 // =====================================
 
-updateUI();
+loadData();
