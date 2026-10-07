@@ -935,3 +935,106 @@ h1 {
     }
 
 }
+/* =====================================
+   ХОТЕЛКИ СВЕТЫ
+   ===================================== */
+
+.wish-add {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.wish-add input {
+    flex: 1;
+    min-width: 0;
+}
+
+.wishes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.wish-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 14px 16px;
+
+    background: #18212B;
+
+    border-radius: 16px;
+
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wish-text {
+    flex: 1;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    color: #ffffff;
+
+    word-break: break-word;
+}
+
+.wish-done-btn {
+    flex-shrink: 0;
+
+    border: none;
+
+    border-radius: 12px;
+
+    padding: 9px 13px;
+
+    background: #35C98B;
+
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.wish-done-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+.wish-done-btn:active {
+    transform: scale(0.97);
+}
+
+
+/* =====================================
+   МОБИЛЬНЫЙ ВИД
+   ===================================== */
+
+@media (max-width: 600px) {
+
+    .wish-add {
+        flex-direction: column;
+    }
+
+    .wish-add button {
+        width: 100%;
+    }
+
+    .wish-card {
+        padding: 13px;
+    }
+
+    .wish-done-btn {
+        padding: 9px 10px;
+    }
+
+}
