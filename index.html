@@ -1,1040 +1,517 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наши финансы</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+<body>
 
-    background:
-        radial-gradient(
-            circle at top left,
-            rgba(80, 110, 255, 0.16),
-            transparent 35%
-        ),
-        #0b0f17;
+<div class="app">
 
-    color: #ffffff;
+    <header class="top">
+        <div>
+            <div class="eyebrow">OUR FINANCES</div>
+            <h1>Наши финансы</h1>
+            <p>Управляйте деньгами вместе</p>
+        </div>
 
-    min-height: 100vh;
-}
+        <button class="settings-btn" onclick="resetAllData()">↻</button>
+    </header>
 
-button,
-input,
-select {
-    font: inherit;
-}
 
-button {
-    cursor: pointer;
-}
+    <!-- ОБЩИЙ БАЛАНС -->
 
-.app {
-    width: min(100%, 850px);
+    <section class="balance-main">
 
-    margin: auto;
+        <div class="balance-label">Общие деньги</div>
 
-    padding: 28px 20px 70px;
-}
+        <div class="balance-value" id="totalBalance">
+            0 ₽
+        </div>
 
+        <div class="balance-info">
+            <span id="totalIncome">Доходы: 0 ₽</span>
+            <span id="totalExpense">Расходы: 0 ₽</span>
+        </div>
 
-/* HEADER */
+    </section>
 
-.top {
-    display: flex;
 
-    justify-content: space-between;
+    <!-- ДВА ЧЕЛОВЕКА -->
 
-    align-items: flex-start;
+    <section class="people">
 
-    margin-bottom: 24px;
-}
+        <div class="person-card">
 
-.eyebrow {
-    font-size: 11px;
+            <div class="person-icon">👨</div>
 
-    letter-spacing: 2px;
+            <div class="person-info">
+                <div class="person-name">Егор</div>
+                <div class="person-balance" id="egorBalance">
+                    0 ₽
+                </div>
+            </div>
 
-    color: #7d8ba5;
+        </div>
 
-    font-weight: 700;
 
-    margin-bottom: 7px;
-}
+        <div class="person-card">
 
-h1 {
-    font-size: 32px;
+            <div class="person-icon">👩</div>
 
-    line-height: 1.1;
-}
+            <div class="person-info">
+                <div class="person-name">Девушка</div>
+                <div class="person-balance" id="girlBalance">
+                    0 ₽
+                </div>
+            </div>
 
-.top p {
-    color: #8995aa;
+        </div>
 
-    margin-top: 7px;
-}
+    </section>
 
-.settings-btn {
-    width: 42px;
 
-    height: 42px;
+    <!-- КНОПКИ -->
 
-    border: 1px solid #263044;
+    <section class="actions">
 
-    background: #141a25;
+        <button class="action income" onclick="openModal('income')">
 
-    color: #9ca8bb;
+            <span>+</span>
 
-    border-radius: 13px;
+            <div>
+                <strong>Добавить доход</strong>
+                <small>Зарплата, подработка и т.д.</small>
+            </div>
 
-    font-size: 21px;
-}
+        </button>
 
 
-/* BALANCE */
+        <button class="action expense" onclick="openModal('expense')">
 
-.balance-main {
-    padding: 28px;
+            <span>−</span>
 
-    border-radius: 25px;
+            <div>
+                <strong>Добавить расход</strong>
+                <small>Покупка, еда, транспорт и т.д.</small>
+            </div>
 
-    background:
-        linear-gradient(
-            135deg,
-            #202b43,
-            #141b29
-        );
+        </button>
 
-    border: 1px solid #2b3851;
+    </section>
 
-    box-shadow:
-        0 20px 50px rgba(0,0,0,.25);
-}
 
-.balance-label {
-    color: #9ca8bb;
+    <!-- СТАТИСТИКА -->
 
-    font-size: 14px;
-}
+    <section class="section">
 
-.balance-value {
-    font-size: clamp(38px, 8vw, 58px);
+        <div class="section-title">
+            <h2>Этот месяц</h2>
+        </div>
 
-    font-weight: 800;
+        <div class="stats">
 
-    margin-top: 8px;
+            <div class="stat-card">
+                <span>Доходы</span>
+                <strong class="green" id="monthIncome">
+                    0 ₽
+                </strong>
+            </div>
 
-    letter-spacing: -2px;
-}
+            <div class="stat-card">
+                <span>Расходы</span>
+                <strong class="red" id="monthExpense">
+                    0 ₽
+                </strong>
+            </div>
 
-.balance-info {
-    display: flex;
+            <div class="stat-card">
+                <span>Осталось</span>
+                <strong id="monthLeft">
+                    0 ₽
+                </strong>
+            </div>
 
-    gap: 20px;
+        </div>
 
-    margin-top: 15px;
+    </section>
 
-    color: #a8b3c6;
 
-    font-size: 14px;
-}
+    <!-- ЦЕЛИ -->
 
+    <section class="section">
 
-/* PEOPLE */
+        <div class="section-title">
 
-.people {
-    display: grid;
+            <div>
+                <h2>Наши цели</h2>
+                <p class="section-subtitle">
+                    На что мы копим
+                </p>
+            </div>
 
-    grid-template-columns: 1fr 1fr;
+            <button class="add-small-btn" onclick="openGoalModal()">
+                + Цель
+            </button>
 
-    gap: 14px;
+        </div>
 
-    margin-top: 14px;
-}
 
-.person-card {
-    background: #141a24;
+        <div id="goals" class="goals">
 
-    border: 1px solid #252e3f;
+            <div class="empty">
 
-    border-radius: 20px;
+                <div>🎯</div>
 
-    padding: 18px;
+                <p>Пока нет целей</p>
 
-    display: flex;
+                <small>
+                    Создайте первую цель, на которую хотите накопить
+                </small>
 
-    align-items: center;
+            </div>
 
-    gap: 13px;
-}
+        </div>
 
-.person-icon {
-    width: 45px;
+    </section>
+<section class="section">
+    <div class="section-title">
+        <div>
+            <h2>Хотелки Светы 💝</h2>
+            <p class="section-subtitle">Что ей хочется</p>
+        </div>
+    </div>
 
-    height: 45px;
+    <div class="wish-add">
+        <input
+            type="text"
+            id="wishText"
+            placeholder="Например: хочу новые наушники"
+            maxlength="120"
+        >
 
-    display: grid;
+        <button
+            class="add-small-btn"
+            onclick="saveWish()"
+        >
+            + Добавить
+        </button>
+    </div>
 
-    place-items: center;
+    <div id="wishes" class="wishes">
+        <div class="empty">
+            <div>💝</div>
+            <p>Пока нет хотелок</p>
+            <small>Света может добавить сюда то, что ей хочется</small>
+        </div>
+    </div>
+</section>
 
-    border-radius: 14px;
+    <!-- ИСТОРИЯ -->
 
-    background: #202938;
+    <section class="section">
 
-    font-size: 23px;
-}
+        <div class="section-title">
 
-.person-name {
-    color: #929eb1;
+            <h2>Последние операции</h2>
 
-    font-size: 13px;
-}
+            <span id="operationCount">
+                0
+            </span>
 
-.person-balance {
-    font-size: 20px;
+        </div>
 
-    font-weight: 700;
 
-    margin-top: 4px;
-}
+        <div id="operations" class="operations">
 
+            <div class="empty">
 
-/* ACTIONS */
+                <div>💸</div>
 
-.actions {
-    display: grid;
+                <p>Пока нет операций</p>
 
-    grid-template-columns: 1fr 1fr;
+                <small>
+                    Добавьте первую зарплату или расход
+                </small>
 
-    gap: 14px;
+            </div>
 
-    margin-top: 20px;
-}
+        </div>
 
-.action {
-    border: none;
+    </section>
 
-    border-radius: 20px;
 
-    padding: 20px;
+</div>
 
-    color: white;
 
-    display: flex;
+<!-- ================================= -->
+<!-- МОДАЛЬНОЕ ОКНО ОПЕРАЦИИ -->
+<!-- ================================= -->
 
-    align-items: center;
+<div class="modal-overlay" id="modal">
 
-    gap: 15px;
+    <div class="modal">
 
-    text-align: left;
+        <div class="modal-header">
 
-    transition: .2s;
-}
+            <div>
 
-.action:hover {
-    transform: translateY(-2px);
-}
+                <div class="eyebrow" id="modalEyebrow">
+                    ОПЕРАЦИЯ
+                </div>
 
-.action span {
-    width: 43px;
+                <h2 id="modalTitle">
+                    Добавить доход
+                </h2>
 
-    height: 43px;
+            </div>
 
-    border-radius: 13px;
+            <button
+                class="close-btn"
+                onclick="closeModal()"
+            >
+                ×
+            </button>
 
-    display: grid;
+        </div>
 
-    place-items: center;
 
-    font-size: 25px;
+        <label>Кто?</label>
 
-    flex-shrink: 0;
-}
+        <div class="person-select">
 
-.action strong {
-    display: block;
+            <button
+                class="person-option active"
+                data-person="egor"
+                onclick="selectPerson('egor')"
+            >
+                👨 Егор
+            </button>
 
-    font-size: 15px;
-}
+            <button
+                class="person-option"
+                data-person="girl"
+                onclick="selectPerson('girl')"
+            >
+                👩 Девушка
+            </button>
 
-.action small {
-    display: block;
+        </div>
 
-    margin-top: 4px;
 
-    opacity: .65;
+        <label>Сумма</label>
 
-    font-size: 12px;
-}
+        <div class="amount-input">
 
-.action.income {
-    background:
-        linear-gradient(
-            135deg,
-            #173b31,
-            #142b27
-        );
+            <input
+                type="number"
+                id="amount"
+                placeholder="0"
+                min="1"
+            >
 
-    border: 1px solid #235747;
-}
+            <span>₽</span>
 
-.action.income span {
-    background: #1e6c56;
-}
+        </div>
 
-.action.expense {
-    background:
-        linear-gradient(
-            135deg,
-            #3c2027,
-            #29171e
-        );
 
-    border: 1px solid #5b303a;
-}
+        <label>Категория</label>
 
-.action.expense span {
-    background: #743443;
-}
+        <select id="category"></select>
 
 
-/* SECTIONS */
+        <label>Описание</label>
 
-.section {
-    margin-top: 30px;
-}
+        <input
+            type="text"
+            id="description"
+            placeholder="Например: зарплата"
+        >
 
-.section-title {
-    display: flex;
 
-    justify-content: space-between;
+        <button
+            class="save-btn"
+            onclick="saveOperation()"
+        >
+            Сохранить
+        </button>
 
-    align-items: center;
+    </div>
 
-    margin-bottom: 13px;
-}
+</div>
 
-.section-title h2 {
-    font-size: 19px;
-}
 
-.section-title > span {
-    color: #6f7c91;
+<!-- ================================= -->
+<!-- МОДАЛЬНОЕ ОКНО ЦЕЛИ -->
+<!-- ================================= -->
 
-    font-size: 13px;
-}
+<div class="modal-overlay" id="goalModal">
 
-.section-subtitle {
-    color: #707d92;
+    <div class="modal">
 
-    font-size: 12px;
+        <div class="modal-header">
 
-    margin-top: 4px;
-}
+            <div>
 
+                <div class="eyebrow">
+                    НОВАЯ ЦЕЛЬ
+                </div>
 
-/* SMALL ADD BUTTON */
+                <h2>
+                    На что копим?
+                </h2>
 
-.add-small-btn {
-    border: 1px solid #34496d;
+            </div>
 
-    background: #1a2943;
+            <button
+                class="close-btn"
+                onclick="closeGoalModal()"
+            >
+                ×
+            </button>
 
-    color: #7da8ff;
+        </div>
 
-    padding: 9px 13px;
 
-    border-radius: 11px;
+        <label>Название цели</label>
 
-    font-size: 12px;
+        <input
+            type="text"
+            id="goalName"
+            placeholder="Например: поездка в Сочи"
+        >
 
-    font-weight: 700;
 
-    transition: .2s;
-}
+        <label>Сколько нужно накопить?</label>
 
-.add-small-btn:hover {
-    background: #24395e;
+        <div class="amount-input">
 
-    transform: translateY(-1px);
-}
+            <input
+                type="number"
+                id="goalTarget"
+                placeholder="50000"
+                min="1"
+            >
 
+            <span>₽</span>
 
-/* STATS */
+        </div>
 
-.stats {
-    display: grid;
 
-    grid-template-columns:
-        repeat(3, 1fr);
+        <label>Уже накоплено</label>
 
-    gap: 12px;
-}
+        <div class="amount-input">
 
-.stat-card {
-    background: #141a24;
+            <input
+                type="number"
+                id="goalSaved"
+                placeholder="0"
+                min="0"
+            >
 
-    border: 1px solid #252e3f;
+            <span>₽</span>
 
-    border-radius: 17px;
+        </div>
 
-    padding: 17px;
-}
 
-.stat-card span {
-    display: block;
+        <button
+            class="save-btn"
+            onclick="saveGoal()"
+        >
+            Создать цель
+        </button>
 
-    color: #7f8ba0;
+    </div>
 
-    font-size: 12px;
-}
+</div>
 
-.stat-card strong {
-    display: block;
 
-    font-size: 19px;
+<!-- ================================= -->
+<!-- МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ -->
+<!-- ================================= -->
 
-    margin-top: 7px;
-}
+<div class="modal-overlay" id="addGoalMoneyModal">
 
-.green {
-    color: #42d39d;
-}
+    <div class="modal">
 
-.red {
-    color: #f06b7c;
-}
+        <div class="modal-header">
 
+            <div>
 
-/* GOALS */
+                <div class="eyebrow">
+                    НАКОПЛЕНИЯ
+                </div>
 
-.goals {
-    display: flex;
+                <h2>
+                    Добавить деньги
+                </h2>
 
-    flex-direction: column;
+            </div>
 
-    gap: 12px;
-}
+            <button
+                class="close-btn"
+                onclick="closeAddGoalMoneyModal()"
+            >
+                ×
+            </button>
 
-.goal-card {
-    background:
-        linear-gradient(
-            135deg,
-            #161f2d,
-            #121822
-        );
+        </div>
 
-    border: 1px solid #283449;
 
-    border-radius: 20px;
+        <label>Кто добавляет?</label>
 
-    padding: 20px;
+        <div class="person-select">
 
-    position: relative;
-}
+            <button
+                class="person-option active"
+                data-goal-person="egor"
+                onclick="selectGoalPerson('egor')"
+            >
+                👨 Егор
+            </button>
 
-.goal-top {
-    display: flex;
+            <button
+                class="person-option"
+                data-goal-person="girl"
+                onclick="selectGoalPerson('girl')"
+            >
+                👩 Светланочка
+            </button>
 
-    justify-content: space-between;
+        </div>
 
-    gap: 15px;
-}
 
-.goal-name {
-    font-size: 16px;
+        <label>Сколько добавить?</label>
 
-    font-weight: 700;
-}
+        <div class="amount-input">
 
-.goal-target {
-    color: #7d899c;
+            <input
+                type="number"
+                id="goalAmount"
+                placeholder="1000"
+                min="1"
+            >
 
-    font-size: 12px;
+            <span>₽</span>
 
-    margin-top: 5px;
-}
+        </div>
 
-.goal-percent {
-    font-size: 18px;
 
-    font-weight: 800;
+        <button
+            class="save-btn"
+            onclick="addMoneyToGoal()"
+        >
+            Добавить
+        </button>
 
-    color: #74a1ff;
-}
+    </div>
 
-.goal-numbers {
-    display: flex;
+</div>
 
-    justify-content: space-between;
+<script src="script.js"></script>
 
-    margin-top: 17px;
-
-    font-size: 13px;
-}
-
-.goal-saved {
-    color: #42d39d;
-
-    font-weight: 700;
-}
-
-.goal-left {
-    color: #7d899c;
-}
-
-.progress {
-    height: 9px;
-
-    background: #252d3b;
-
-    border-radius: 20px;
-
-    overflow: hidden;
-
-    margin-top: 9px;
-}
-
-.progress-fill {
-    height: 100%;
-
-    background:
-        linear-gradient(
-            90deg,
-            #477df0,
-            #6aa0ff
-        );
-
-    border-radius: inherit;
-
-    transition: width .4s ease;
-}
-
-.goal-actions {
-    display: flex;
-
-    gap: 8px;
-
-    margin-top: 16px;
-}
-
-.goal-add-btn {
-    flex: 1;
-
-    border: none;
-
-    background: #263d68;
-
-    color: #91b6ff;
-
-    padding: 11px;
-
-    border-radius: 11px;
-
-    font-size: 12px;
-
-    font-weight: 700;
-}
-
-.goal-delete-btn {
-    width: 42px;
-
-    border: 1px solid #3a2930;
-
-    background: #211a20;
-
-    color: #806673;
-
-    border-radius: 11px;
-
-    font-size: 17px;
-}
-
-.goal-complete {
-    color: #42d39d;
-
-    font-size: 12px;
-
-    font-weight: 700;
-
-    margin-top: 12px;
-}
-
-
-/* OPERATIONS */
-
-.operations {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 9px;
-}
-
-.operation {
-    display: flex;
-
-    align-items: center;
-
-    gap: 13px;
-
-    padding: 15px;
-
-    border-radius: 17px;
-
-    background: #141a24;
-
-    border: 1px solid #252e3f;
-}
-
-.operation-icon {
-    width: 43px;
-
-    height: 43px;
-
-    border-radius: 13px;
-
-    display: grid;
-
-    place-items: center;
-
-    font-size: 19px;
-
-    flex-shrink: 0;
-}
-
-.operation-icon.income {
-    background: #173c31;
-}
-
-.operation-icon.expense {
-    background: #3a2028;
-}
-
-.operation-main {
-    flex: 1;
-
-    min-width: 0;
-}
-
-.operation-description {
-    font-size: 14px;
-
-    font-weight: 600;
-}
-
-.operation-meta {
-    margin-top: 4px;
-
-    color: #748197;
-
-    font-size: 11px;
-}
-
-.operation-amount {
-    font-weight: 700;
-
-    white-space: nowrap;
-}
-
-.operation-amount.income {
-    color: #42d39d;
-}
-
-.operation-amount.expense {
-    color: #f06b7c;
-}
-
-.delete-operation {
-    background: none;
-
-    border: none;
-
-    color: #526078;
-
-    font-size: 18px;
-
-    padding: 5px;
-}
-
-.delete-operation:hover {
-    color: #f06b7c;
-}
-
-
-/* EMPTY */
-
-.empty {
-    text-align: center;
-
-    padding: 45px 20px;
-
-    border: 1px dashed #293348;
-
-    border-radius: 20px;
-
-    color: #6e7a8e;
-}
-
-.empty div {
-    font-size: 34px;
-
-    margin-bottom: 12px;
-}
-
-.empty p {
-    color: #9aa5b7;
-}
-
-.empty small {
-    display: block;
-
-    margin-top: 5px;
-}
-
-
-/* MODAL */
-
-.modal-overlay {
-    position: fixed;
-
-    inset: 0;
-
-    background: rgba(0,0,0,.7);
-
-    backdrop-filter: blur(7px);
-
-    display: none;
-
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 20px;
-
-    z-index: 100;
-}
-
-.modal-overlay.active {
-    display: flex;
-}
-
-.modal {
-    width: min(100%, 470px);
-
-    background: #141a24;
-
-    border: 1px solid #2a3447;
-
-    border-radius: 25px;
-
-    padding: 25px;
-
-    box-shadow:
-        0 30px 80px rgba(0,0,0,.5);
-}
-
-.modal-header {
-    display: flex;
-
-    justify-content: space-between;
-
-    align-items: flex-start;
-
-    margin-bottom: 25px;
-}
-
-.modal h2 {
-    font-size: 25px;
-}
-
-.close-btn {
-    border: none;
-
-    background: #202938;
-
-    color: #aab4c4;
-
-    width: 36px;
-
-    height: 36px;
-
-    border-radius: 11px;
-
-    font-size: 23px;
-}
-
-.modal label {
-    display: block;
-
-    color: #8995a9;
-
-    font-size: 12px;
-
-    margin-bottom: 8px;
-
-    margin-top: 18px;
-}
-
-.person-select {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 9px;
-}
-
-.person-option {
-    padding: 13px;
-
-    border-radius: 13px;
-
-    background: #1c2432;
-
-    color: #a8b2c2;
-
-    border: 1px solid #2b3548;
-}
-
-.person-option.active {
-    background: #263b68;
-
-    color: white;
-
-    border-color: #4166a7;
-}
-
-.amount-input {
-    display: flex;
-
-    align-items: center;
-
-    background: #1b222e;
-
-    border: 1px solid #2b3547;
-
-    border-radius: 14px;
-
-    padding: 0 15px;
-}
-
-.amount-input input {
-    width: 100%;
-
-    background: none;
-
-    border: none;
-
-    outline: none;
-
-    color: white;
-
-    padding: 15px 0;
-
-    font-size: 25px;
-
-    font-weight: 700;
-}
-
-.amount-input span {
-    color: #69758a;
-}
-
-.modal input[type="text"],
-.modal select {
-    width: 100%;
-
-    padding: 14px;
-
-    border-radius: 13px;
-
-    border: 1px solid #2b3547;
-
-    background: #1b222e;
-
-    color: white;
-
-    outline: none;
-}
-
-.save-btn {
-    width: 100%;
-
-    margin-top: 25px;
-
-    padding: 15px;
-
-    border: none;
-
-    border-radius: 14px;
-
-    background: #326be4;
-
-    color: white;
-
-    font-weight: 700;
-
-    font-size: 15px;
-}
-
-.save-btn:hover {
-    background: #4078ed;
-}
-
-
-/* MOBILE */
-
-@media (max-width: 600px) {
-
-    .app {
-        padding:
-            22px
-            15px
-            50px;
-    }
-
-    h1 {
-        font-size: 27px;
-    }
-
-    .balance-main {
-        padding: 23px;
-    }
-
-    .balance-info {
-        flex-direction: column;
-
-        gap: 5px;
-    }
-
-    .people,
-    .actions {
-        grid-template-columns: 1fr;
-    }
-
-    .stats {
-        grid-template-columns:
-            1fr 1fr;
-    }
-
-    .stat-card:last-child {
-        grid-column: 1 / -1;
-    }
-
-    .goal-top {
-        align-items: flex-start;
-    }
-
-    .operation {
-        padding: 12px;
-    }
-
-    .operation-amount {
-        font-size: 13px;
-    }
-
-}
-/* =====================================
-   ХОТЕЛКИ СВЕТЫ
-   ===================================== */
-
-.wish-add {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
-}
-
-.wish-add input {
-    flex: 1;
-    min-width: 0;
-}
-
-.wishes {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.wish-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-
-    padding: 14px 16px;
-
-    background: #18212B;
-
-    border-radius: 16px;
-
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.wish-text {
-    flex: 1;
-
-    font-size: 15px;
-    font-weight: 500;
-
-    color: #ffffff;
-
-    word-break: break-word;
-}
-
-.wish-done-btn {
-    flex-shrink: 0;
-
-    border: none;
-
-    border-radius: 12px;
-
-    padding: 9px 13px;
-
-    background: #35C98B;
-
-    color: #ffffff;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-        transform 0.15s ease,
-        opacity 0.15s ease;
-}
-
-.wish-done-btn:hover {
-    transform: translateY(-1px);
-    opacity: 0.9;
-}
-
-.wish-done-btn:active {
-    transform: scale(0.97);
-}
-
-
-/* =====================================
-   МОБИЛЬНЫЙ ВИД
-   ===================================== */
-
-@media (max-width: 600px) {
-
-    .wish-add {
-        flex-direction: column;
-    }
-
-    .wish-add button {
-        width: 100%;
-    }
-
-    .wish-card {
-        padding: 13px;
-    }
-
-    .wish-done-btn {
-        padding: 9px 10px;
-    }
-
-}
+</body>
+</html>
