@@ -25,6 +25,8 @@ let operations = [];
 
 let goals = [];
 
+let wishes = [];
+
 let currentType = "income";
 
 let selectedPerson = "egor";
@@ -53,6 +55,10 @@ function formatMoney(value) {
 async function loadData() {
 
     try {
+
+        // =================================
+        // ОПЕРАЦИИ
+        // =================================
 
         const operationsResult =
             await supabaseClient
@@ -107,6 +113,10 @@ async function loadData() {
             );
 
 
+        // =================================
+        // ЦЕЛИ
+        // =================================
+
         const goalsResult =
             await supabaseClient
                 .from("goals")
@@ -152,6 +162,52 @@ async function loadData() {
 
                     createdAt:
                         goal.created_at
+
+                })
+            );
+
+
+        // =================================
+        // ХОТЕЛКИ
+        // =================================
+
+        const wishesResult =
+            await supabaseClient
+                .from("wishes")
+                .select("*")
+                .eq("completed", false)
+                .order("created_at", {
+                    ascending: false
+                });
+
+
+        if (wishesResult.error) {
+
+            console.error(
+                "Ошибка загрузки хотелок:",
+                wishesResult.error
+            );
+
+            alert(
+                "Не удалось загрузить хотелки:\n\n" +
+                wishesResult.error.message
+            );
+
+            return;
+
+        }
+
+
+        wishes =
+            wishesResult.data.map(
+                wish => ({
+
+                    id: wish.id,
+
+                    text: wish.text,
+
+                    createdAt:
+                        wish.created_at
 
                 })
             );
@@ -615,6 +671,8 @@ function updateUI() {
 
     renderGoals();
 
+    renderWishes();
+
     renderOperations();
 
 }
@@ -882,6 +940,13 @@ function renderGoals() {
 
     const container =
         document.getElementById("goals");
+
+
+    if (!container) {
+
+        return;
+
+    }
 
 
     if (goals.length === 0) {
@@ -1269,6 +1334,219 @@ async function deleteGoal(id) {
 
 
 // =====================================
+// ХОТЕЛКИ СВЕТЫ
+// =====================================
+
+async function saveWish() {
+
+    const input =
+        document.getElementById("wishText");
+
+
+    if (!input) {
+
+        return;
+
+    }
+
+
+    const text =
+        input.value.trim();
+
+
+    if (!text) {
+
+        alert(
+            "Напишите хотелку"
+        );
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("wishes")
+            .insert({
+
+                text: text,
+
+                completed: false
+
+            })
+            .select()
+            .single();
+
+
+    if (error) {
+
+        console.error(
+            "Ошибка добавления хотелки:",
+            error
+        );
+
+        alert(
+            "Не удалось добавить хотелку.\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    wishes.unshift({
+
+        id: data.id,
+
+        text: data.text,
+
+        createdAt:
+            data.created_at
+
+    });
+
+
+    input.value = "";
+
+    renderWishes();
+
+}
+
+
+// =====================================
+// ВЫПОЛНИТЬ ХОТЕЛКУ
+// =====================================
+
+async function completeWish(id) {
+
+    const confirmed =
+        confirm(
+            "Отметить эту хотелку как подаренную?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("wishes")
+            .update({
+
+                completed: true
+
+            })
+            .eq("id", id);
+
+
+    if (error) {
+
+        console.error(
+            "Ошибка выполнения хотелки:",
+            error
+        );
+
+        alert(
+            "Не удалось отметить хотелку.\n\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    wishes =
+        wishes.filter(
+            wish =>
+                wish.id !== id
+        );
+
+
+    renderWishes();
+
+}
+
+
+// =====================================
+// ОТОБРАЖЕНИЕ ХОТЕЛОК
+// =====================================
+
+function renderWishes() {
+
+    const container =
+        document.getElementById("wishes");
+
+
+    if (!container) {
+
+        return;
+
+    }
+
+
+    if (wishes.length === 0) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <div>💝</div>
+
+                <p>
+                    Пока нет хотелок
+                </p>
+
+                <small>
+                    Света может добавить сюда то,
+                    что ей хочется
+                </small>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        wishes.map(wish => `
+
+            <div class="wish-card">
+
+                <div class="wish-text">
+
+                    💝
+                    ${escapeHTML(wish.text)}
+
+                </div>
+
+
+                <button
+                    class="wish-done-btn"
+                    onclick="completeWish(${wish.id})"
+                >
+                    ✓ Подарил
+                </button>
+
+            </div>
+
+        `).join("");
+
+}
+
+
+// =====================================
 // ИСТОРИЯ ОПЕРАЦИЙ
 // =====================================
 
@@ -1321,7 +1599,7 @@ function renderOperations() {
                 const personName =
                     operation.person === "egor"
                         ? "Егор"
-                        : "Девушка";
+                        : "Света";
 
 
                 const icon =
@@ -1527,6 +1805,97 @@ async function resetAllData() {
 
 
 // =====================================
+// REALTIME
+// =====================================
+
+function setupRealtime() {
+
+    supabaseClient
+
+        .channel("our-finance-realtime")
+
+        // ==============================
+        // ОПЕРАЦИИ
+        // ==============================
+
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "operations"
+            },
+            async () => {
+
+                console.log(
+                    "Realtime: обновились операции"
+                );
+
+                await loadData();
+
+            }
+        )
+
+
+        // ==============================
+        // ЦЕЛИ
+        // ==============================
+
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "goals"
+            },
+            async () => {
+
+                console.log(
+                    "Realtime: обновились цели"
+                );
+
+                await loadData();
+
+            }
+        )
+
+
+        // ==============================
+        // ХОТЕЛКИ
+        // ==============================
+
+        .on(
+            "postgres_changes",
+            {
+                event: "*",
+                schema: "public",
+                table: "wishes"
+            },
+            async () => {
+
+                console.log(
+                    "Realtime: обновились хотелки"
+                );
+
+                await loadData();
+
+            }
+        )
+
+
+        .subscribe(status => {
+
+            console.log(
+                "Realtime:",
+                status
+            );
+
+        });
+
+}
+
+
+// =====================================
 // ЗАКРЫТИЕ ПО КЛИКУ ВНЕ ОКНА
 // =====================================
 
@@ -1585,27 +1954,50 @@ document
 
 
 // =====================================
-// ЗАПУСК
-// =====================================
-
-loadData();
-// =====================================
 // ДОСТУП ФУНКЦИЙ ИЗ HTML
 // =====================================
 
 Object.assign(window, {
+
     openModal,
+
     closeModal,
+
     selectPerson,
+
     saveOperation,
+
     deleteOperation,
+
     openGoalModal,
+
     closeGoalModal,
+
     saveGoal,
+
     openAddGoalMoneyModal,
+
     closeAddGoalMoneyModal,
+
     selectGoalPerson,
+
     addMoneyToGoal,
+
     deleteGoal,
+
+    saveWish,
+
+    completeWish,
+
     resetAllData
+
 });
+
+
+// =====================================
+// ЗАПУСК
+// =====================================
+
+loadData();
+
+setupRealtime();
