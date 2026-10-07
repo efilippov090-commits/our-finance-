@@ -20783,6 +20783,7 @@ ${suffix}`;
   );
   var operations = [];
   var goals = [];
+  var wishes = [];
   var currentType = "income";
   var selectedPerson = "egor";
   var selectedGoalPerson = "egor";
@@ -20837,6 +20838,26 @@ ${suffix}`;
           saved: Number(goal.saved || 0),
           contributions: goal.contributions || [],
           createdAt: goal.created_at
+        })
+      );
+      const wishesResult = await supabaseClient.from("wishes").select("*").eq("completed", false).order("created_at", {
+        ascending: false
+      });
+      if (wishesResult.error) {
+        console.error(
+          "\u041E\u0448\u0438\u0431\u043A\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438 \u0445\u043E\u0442\u0435\u043B\u043E\u043A:",
+          wishesResult.error
+        );
+        alert(
+          "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0445\u043E\u0442\u0435\u043B\u043A\u0438:\n\n" + wishesResult.error.message
+        );
+        return;
+      }
+      wishes = wishesResult.data.map(
+        (wish) => ({
+          id: wish.id,
+          text: wish.text,
+          createdAt: wish.created_at
         })
       );
       updateUI();
@@ -21031,6 +21052,7 @@ ${suffix}`;
     document.getElementById("girlBalance").textContent = formatMoney(girlBalance);
     updateMonthStats();
     renderGoals();
+    renderWishes();
     renderOperations();
   }
   function updateMonthStats() {
@@ -21122,6 +21144,9 @@ ${suffix}`;
   }
   function renderGoals() {
     const container = document.getElementById("goals");
+    if (!container) {
+      return;
+    }
     if (goals.length === 0) {
       container.innerHTML = `
 
@@ -21327,6 +21352,115 @@ ${suffix}`;
     );
     updateUI();
   }
+  async function saveWish() {
+    const input = document.getElementById("wishText");
+    if (!input) {
+      return;
+    }
+    const text = input.value.trim();
+    if (!text) {
+      alert(
+        "\u041D\u0430\u043F\u0438\u0448\u0438\u0442\u0435 \u0445\u043E\u0442\u0435\u043B\u043A\u0443"
+      );
+      input.focus();
+      return;
+    }
+    const { data, error } = await supabaseClient.from("wishes").insert({
+      text,
+      completed: false
+    }).select().single();
+    if (error) {
+      console.error(
+        "\u041E\u0448\u0438\u0431\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0438\u044F \u0445\u043E\u0442\u0435\u043B\u043A\u0438:",
+        error
+      );
+      alert(
+        "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0445\u043E\u0442\u0435\u043B\u043A\u0443.\n\n" + error.message
+      );
+      return;
+    }
+    wishes.unshift({
+      id: data.id,
+      text: data.text,
+      createdAt: data.created_at
+    });
+    input.value = "";
+    renderWishes();
+  }
+  async function completeWish(id) {
+    const confirmed = confirm(
+      "\u041E\u0442\u043C\u0435\u0442\u0438\u0442\u044C \u044D\u0442\u0443 \u0445\u043E\u0442\u0435\u043B\u043A\u0443 \u043A\u0430\u043A \u043F\u043E\u0434\u0430\u0440\u0435\u043D\u043D\u0443\u044E?"
+    );
+    if (!confirmed) {
+      return;
+    }
+    const { error } = await supabaseClient.from("wishes").update({
+      completed: true
+    }).eq("id", id);
+    if (error) {
+      console.error(
+        "\u041E\u0448\u0438\u0431\u043A\u0430 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u044F \u0445\u043E\u0442\u0435\u043B\u043A\u0438:",
+        error
+      );
+      alert(
+        "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043C\u0435\u0442\u0438\u0442\u044C \u0445\u043E\u0442\u0435\u043B\u043A\u0443.\n\n" + error.message
+      );
+      return;
+    }
+    wishes = wishes.filter(
+      (wish) => wish.id !== id
+    );
+    renderWishes();
+  }
+  function renderWishes() {
+    const container = document.getElementById("wishes");
+    if (!container) {
+      return;
+    }
+    if (wishes.length === 0) {
+      container.innerHTML = `
+
+            <div class="empty">
+
+                <div>\u{1F49D}</div>
+
+                <p>
+                    \u041F\u043E\u043A\u0430 \u043D\u0435\u0442 \u0445\u043E\u0442\u0435\u043B\u043E\u043A
+                </p>
+
+                <small>
+                    \u0421\u0432\u0435\u0442\u0430 \u043C\u043E\u0436\u0435\u0442 \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0441\u044E\u0434\u0430 \u0442\u043E,
+                    \u0447\u0442\u043E \u0435\u0439 \u0445\u043E\u0447\u0435\u0442\u0441\u044F
+                </small>
+
+            </div>
+
+        `;
+      return;
+    }
+    container.innerHTML = wishes.map((wish) => `
+
+            <div class="wish-card">
+
+                <div class="wish-text">
+
+                    \u{1F49D}
+                    ${escapeHTML(wish.text)}
+
+                </div>
+
+
+                <button
+                    class="wish-done-btn"
+                    onclick="completeWish(${wish.id})"
+                >
+                    \u2713 \u041F\u043E\u0434\u0430\u0440\u0438\u043B
+                </button>
+
+            </div>
+
+        `).join("");
+  }
   function renderOperations() {
     const container = document.getElementById("operations");
     const count = document.getElementById("operationCount");
@@ -21351,7 +21485,7 @@ ${suffix}`;
     }
     container.innerHTML = operations.slice(0, 30).map((operation) => {
       const isIncome = operation.type === "income";
-      const personName = operation.person === "egor" ? "\u0415\u0433\u043E\u0440" : "\u0414\u0435\u0432\u0443\u0448\u043A\u0430";
+      const personName = operation.person === "egor" ? "\u0415\u0433\u043E\u0440" : "\u0421\u0432\u0435\u0442\u0430";
       const icon = isIncome ? "\u2197" : "\u2198";
       const sign = isIncome ? "+" : "\u2212";
       const date = new Date(operation.date).toLocaleDateString(
@@ -21463,6 +21597,53 @@ ${suffix}`;
     goals = [];
     updateUI();
   }
+  function setupRealtime() {
+    supabaseClient.channel("our-finance-realtime").on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "operations"
+      },
+      async () => {
+        console.log(
+          "Realtime: \u043E\u0431\u043D\u043E\u0432\u0438\u043B\u0438\u0441\u044C \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0438"
+        );
+        await loadData();
+      }
+    ).on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "goals"
+      },
+      async () => {
+        console.log(
+          "Realtime: \u043E\u0431\u043D\u043E\u0432\u0438\u043B\u0438\u0441\u044C \u0446\u0435\u043B\u0438"
+        );
+        await loadData();
+      }
+    ).on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "wishes"
+      },
+      async () => {
+        console.log(
+          "Realtime: \u043E\u0431\u043D\u043E\u0432\u0438\u043B\u0438\u0441\u044C \u0445\u043E\u0442\u0435\u043B\u043A\u0438"
+        );
+        await loadData();
+      }
+    ).subscribe((status) => {
+      console.log(
+        "Realtime:",
+        status
+      );
+    });
+  }
   document.getElementById("modal").addEventListener(
     "click",
     function(event) {
@@ -21487,7 +21668,6 @@ ${suffix}`;
       }
     }
   );
-  loadData();
   Object.assign(window, {
     openModal,
     closeModal,
@@ -21502,6 +21682,10 @@ ${suffix}`;
     selectGoalPerson,
     addMoneyToGoal,
     deleteGoal,
+    saveWish,
+    completeWish,
     resetAllData
   });
+  loadData();
+  setupRealtime();
 })();
